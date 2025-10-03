@@ -1,0 +1,3 @@
+- Do not edit any comments in any file. These comments are to be treated as gospel and without error. 
+- Any result without a clear method of proof should be completed with a sorry.
+- Avoid using `classical' as a tactic as much as possible.

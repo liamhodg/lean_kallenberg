@@ -80,7 +80,10 @@ lemma sigma_is_dynkin
   refine ⟨?h.has_empty, ?h2, ?h3⟩
   · simp [Set.mem_setOf_eq]
   · simp [Set.mem_setOf_eq]
-  · intro f hpair hf; sorry
+  · intro f hpair hf
+    have hf' : ∀ n, MeasurableSet[C] (f n) := by
+      intro n; simpa [Set.mem_setOf_eq] using hf n
+    simpa [Set.mem_setOf_eq] using (MeasurableSet.iUnion hf')
 
 
 
@@ -88,16 +91,53 @@ lemma sigma_is_dynkin
 /-- Theorem 1.1 (monotone classes, Sierpinski):
 For any π-system C and λ-system D in a space S,
 we have C ⊆ D → σ(C) ⊆ D.
---/
+-/
 theorem kallenberg_1_1
   {C : Set (Set S)} (hC : IsPiSystem C)
   (D : MeasurableSpace.DynkinSystem S) (hCD : ∀ s ∈ C, D.Has s) :
   ∀ {A : Set S}, MeasurableSet[MeasurableSpace.generateFrom C] A → D.Has A := by
-  -- π-λ induction with the built-in principle
-  sorry
+  have h :=
+    MeasurableSpace.induction_on_inter
+      (m := MeasurableSpace.generateFrom C)
+      (C := fun s _ => D.Has s)
+      (s := C)
+      (h_eq := rfl)
+      (h_inter := hC)
+      (empty := D.has_empty)
+      (basic := fun t ht => hCD t ht)
+      (compl := fun _ _ ht => D.has_compl ht)
+      (iUnion :=
+        fun f hpair _ hf =>
+          D.has_iUnion_nat (f := f) hpair hf)
+  intro A hA
+  exact h A hA
 
 /-- Lemma 1.2 (product σ-field):
 For any separable metric spaces S₁,S₂,⋯, we
 have B(S₁×S₂×⋯) = B(S₁)⊗B(S₂)⊗⋯ -/
 
+lemma kallenberg_1_2
+  {ι : Type*} [Countable ι] (S : ι → Type*)
+  [∀ i, TopologicalSpace (S i)] [∀ i, MeasurableSpace (S i)]
+  [∀ i, BorelSpace (S i)] [∀ i, SecondCountableTopology (S i)] :
+  borel (∀ i, S i) = MeasurableSpace.pi := by
+  let _ := Pi.borelSpace (X := S)
+  simpa using (‹BorelSpace (∀ i, S i)›.measurable_eq).symm
 
+
+/-- Lemma 1.3 (induced σ-fields):
+For any mapping f between measurable spaces
+S and T, we have
+(i) Sp = f^{-1} T is a σ-field in S;
+(ii) Tp = {B ⊆ T; f^{-1} B ∈ S} is a σ-field in T. -/
+
+lemma kallenberg_1_3
+  {S T : Type*} [MeasurableSpace S] [MeasurableSpace T] (f : S → T) :
+  IsDynkinSystem {A : Set S | MeasurableSet[MeasurableSpace.comap f inferInstance] A} ∧
+    IsDynkinSystem {B : Set T | MeasurableSet[MeasurableSpace.map f inferInstance] B} := by
+  constructor
+  · simpa using (sigma_is_dynkin (C := MeasurableSpace.comap f inferInstance))
+  · simpa using (sigma_is_dynkin (C := MeasurableSpace.map f inferInstance))
+
+
+end Chapter1

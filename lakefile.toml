@@ -16,3 +16,6 @@ scope = "leanprover-community"
 
 [[lean_lib]]
 name = "LeanKallenberg"
+
+[[lean_lib]]
+name = "Kallenberg"
