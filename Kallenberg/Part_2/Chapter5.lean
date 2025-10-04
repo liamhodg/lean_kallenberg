@@ -26,29 +26,24 @@ def prob (μ : Measure Ω) [IsProbabilityMeasure μ] (s : Set Ω) : ℝ :=
 
 lemma indicator_mul_le
   {ξ : Ω → ℝ} (hξ_nonneg : ∀ ω, 0 ≤ ξ ω) {a : ℝ} :
-  ∀ ω, a * Set.indicator {ω | ξ ω ≥ a} (fun _ : Ω => (1 : ℝ)) ω ≤ ξ ω := by
+  ∀ ω, a * Set.indicator {ω | ξ ω > a} (fun _ : Ω => (1 : ℝ)) ω ≤ ξ ω := by
   classical
   intro ω
-  by_cases hω : ξ ω ≥ a
-  · have h_le : a ≤ ξ ω := hω
+  by_cases hω : ξ ω > a
+  · have h_le : a ≤ ξ ω := le_of_lt hω
     have h_indicator :
-        Set.indicator {ω | ξ ω ≥ a} (fun _ : Ω => (1 : ℝ)) ω = (1 : ℝ) := by
+        Set.indicator {ω | ξ ω > a} (fun _ : Ω => (1 : ℝ)) ω = (1 : ℝ) := by
       simp [Set.mem_setOf_eq, hω]
-    have :
-        a *
-            Set.indicator {ω | ξ ω ≥ a} (fun _ : Ω => (1 : ℝ)) ω = a :=
-      by
-      simp [h_indicator]
-    simpa [this]
+    simpa [h_indicator]
       using h_le
   · have hξω : 0 ≤ ξ ω := hξ_nonneg ω
     have h_indicator :
-        Set.indicator {ω | ξ ω ≥ a} (fun _ : Ω => (1 : ℝ)) ω = (0 : ℝ) :=
+        Set.indicator {ω | ξ ω > a} (fun _ : Ω => (1 : ℝ)) ω = (0 : ℝ) :=
       by
       simp [Set.mem_setOf_eq, hω]
     have :
         a *
-            Set.indicator {ω | ξ ω ≥ a} (fun _ : Ω => (1 : ℝ)) ω = 0 :=
+            Set.indicator {ω | ξ ω > a} (fun _ : Ω => (1 : ℝ)) ω = 0 :=
       by
       simp [h_indicator]
     simp [this, hξω]
@@ -56,14 +51,14 @@ lemma indicator_mul_le
 lemma measurable_indicator_mul_const {ξ : Ω → ℝ}
   (hξ_meas : Measurable ξ) {a : ℝ} :
   Measurable fun ω : Ω =>
-    a * Set.indicator {ω | ξ ω ≥ a} (fun _ : Ω => (1 : ℝ)) ω := by
+    a * Set.indicator {ω | ξ ω > a} (fun _ : Ω => (1 : ℝ)) ω := by
   classical
-  have hs : MeasurableSet {ω : Ω | ξ ω ≥ a} := by
-    have : {ω : Ω | ξ ω ≥ a} = ξ ⁻¹' Set.Ici a := by
-      ext ω; simp [Set.mem_setOf_eq, Set.mem_Ici, ge_iff_le]
-    simpa [this] using hξ_meas measurableSet_Ici
+  have hs : MeasurableSet {ω : Ω | ξ ω > a} := by
+    have : {ω : Ω | ξ ω > a} = ξ ⁻¹' Set.Ioi a := by
+      ext ω; simp [Set.mem_setOf_eq, Set.mem_Ioi]
+    simpa [this] using hξ_meas measurableSet_Ioi
   have h_indicator : Measurable fun ω : Ω =>
-      Set.indicator {ω | ξ ω ≥ a} (fun _ : Ω => (1 : ℝ)) ω :=
+      Set.indicator {ω | ξ ω > a} (fun _ : Ω => (1 : ℝ)) ω :=
     (measurable_const : Measurable fun _ : Ω => (1 : ℝ)).indicator hs
   exact (measurable_const.mul h_indicator)
 
@@ -71,13 +66,13 @@ lemma integrable_indicator_mul_const {ξ : Ω → ℝ}
   (hξ_meas : Measurable ξ) {a : ℝ}
   (μ : Measure Ω) [IsProbabilityMeasure μ] :
   Integrable (fun ω : Ω =>
-    a * Set.indicator {ω | ξ ω ≥ a} (fun _ : Ω => (1 : ℝ)) ω) μ := by
+    a * Set.indicator {ω | ξ ω > a} (fun _ : Ω => (1 : ℝ)) ω) μ := by
   classical
-  set s := {ω : Ω | ξ ω ≥ a}
+  set s := {ω : Ω | ξ ω > a}
   have hs : MeasurableSet s := by
-    have : s = ξ ⁻¹' Set.Ici a := by
-      ext ω; simp [s, Set.mem_setOf_eq, Set.mem_Ici, ge_iff_le]
-    simpa [this] using hξ_meas measurableSet_Ici
+    have : s = ξ ⁻¹' Set.Ioi a := by
+      ext ω; simp [s, Set.mem_setOf_eq, Set.mem_Ioi]
+    simpa [this] using hξ_meas measurableSet_Ioi
   have h_const : Integrable (fun _ : Ω => a) μ := by
     simp [integrable_const (μ := μ) (c := a)]
   have h_indicator : Integrable (fun ω : Ω => Set.indicator s (fun _ : Ω => a) ω) μ :=
@@ -96,12 +91,12 @@ lemma real_markov
   (μ : Measure Ω) [IsProbabilityMeasure μ] {ξ : Ω → ℝ}
   (hξ_meas : Measurable ξ) (hξ_nonneg : ∀ ω, 0 ≤ ξ ω) (hξ_int : Integrable ξ μ)
   {a : ℝ} :
-  prob μ {ω | ξ ω ≥ a} * a ≤ μ[ξ] := by
-  set s : Set Ω := {ω | ξ ω ≥ a}
+  prob μ {ω | ξ ω > a} * a ≤ μ[ξ] := by
+  set s : Set Ω := {ω | ξ ω > a}
   have hs : MeasurableSet s := by
-    have : s = ξ ⁻¹' Set.Ici a := by
-      ext ω; simp [s, Set.mem_setOf_eq, Set.mem_Ici, ge_iff_le]
-    simpa [this] using hξ_meas measurableSet_Ici
+    have : s = ξ ⁻¹' Set.Ioi a := by
+      ext ω; simp [s, Set.mem_setOf_eq, Set.mem_Ioi]
+    simpa [this] using hξ_meas measurableSet_Ioi
   let g : Ω → ℝ := fun ω => a * Set.indicator s (fun _ : Ω => (1 : ℝ)) ω
   have hg_le : g ≤ fun ω => ξ ω := indicator_mul_le hξ_nonneg
   have hg_integrable : Integrable g μ :=
