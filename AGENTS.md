@@ -1,3 +1,8 @@
 - Do not edit any comments in any file. These comments are to be treated as gospel and without error. 
 - Any result without a clear method of proof should be completed with a sorry.
 - Do not use the classical tactic.
+- For a Kallenberg PNG task, first run `python3 scripts/prepare_leanstral_page.py path/to/kallenberg_pg-NNN.png`, then follow the generated task file in `.leanstral/tasks/`.
+- Put new OCR-derived lemmas and theorems under `Kallenberg/Generated/PageNNN.lean` unless the task file names a more specific existing destination.
+- Formalize each visible lemma/theorem from the PNG as a Lean declaration. If the exact statement or proof method is unclear, keep the best typed statement you can justify and finish with `sorry`.
+- Use existing project names and namespaces where possible. Prefer mathlib definitions over creating replacements.
+- After editing, run `lake env lean Kallenberg/Generated/PageNNN.lean` when `lake` is available.

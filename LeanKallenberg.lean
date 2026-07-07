@@ -5,6 +5,7 @@ import Kallenberg.Appendix.Appendix1
 import Kallenberg.Appendix.Appendix2
 import Kallenberg.Appendix.Appendix3
 import Kallenberg.Appendix.Appendix4
+import Kallenberg.Generated
 
 namespace LeanKallenberg
 

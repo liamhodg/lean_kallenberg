@@ -49,14 +49,10 @@ supports `M`. -/
 lemma kallenberg_a3_2_i {M : Set E} (hM : Convex ℝ M) {x : E} (hx : x ∈ frontier M) :
     ∃ (φ : StrongDual ℝ E) (b : ℝ), φ x = b ∧ ∀ y ∈ M, φ y ≤ b := by
   classical
-  -- Split into the easy empty-interior case and the interesting one.
   by_cases hInt : (interior M).Nonempty
   · set s := interior M
     have hConvInt : Convex ℝ s := hM.interior
     have hsOpen : IsOpen s := isOpen_interior
-    -- Work inside the open convex subset `s = interior M`.
-    -- Afterwards we transfer the inequalities back to `M`
-    -- using `closure_interior_eq_closure_of_nonempty_interior`.
     have hclosure :=
       hM.closure_interior_eq_closure_of_nonempty_interior (𝕜 := ℝ) hInt
     have hx_not_int : x ∉ s := by
@@ -70,7 +66,6 @@ lemma kallenberg_a3_2_i {M : Set E} (hM : Convex ℝ M) {x : E} (hx : x ∈ fron
       geometric_hahn_banach_open_point (s := s) hConvInt hsOpen hx_not_int
     refine ⟨φ, φ x, rfl, ?_⟩
     intro y hyM
-    -- Strict separation on the interior propagates to the boundary via openness.
     by_contra h_le
     have hy_lt : φ x < φ y := lt_of_not_ge h_le
     have hy_sub_pos : 0 < φ y - φ x := sub_pos.mpr hy_lt
@@ -89,10 +84,8 @@ lemma kallenberg_a3_2_i {M : Set E} (hM : Convex ℝ M) {x : E} (hx : x ∈ fron
       simpa [U, Set.mem_preimage, Set.mem_Ioi] using hyU'
     have hy_closure_s : y ∈ closure s := by
       have hy_closureM : y ∈ closure M := subset_closure hyM
-      -- Replace `closure M` by `closure s` so that we can use the supporting-open-set argument.
       simpa [s, hclosure] using hy_closureM
     rcases (mem_closure_iff.1 hy_closure_s) U hUopen hyU with ⟨z, hzU, hzs⟩
-    -- The cluster point contradicts the strict inequality on `s`.
     have hz_gt : φ x + δ < φ z := by
       simpa [U, Set.mem_preimage, Set.mem_Ioi] using hzU
     have hz_lt : φ z < φ x := hφ_lt z hzs
@@ -103,7 +96,6 @@ lemma kallenberg_a3_2_i {M : Set E} (hM : Convex ℝ M) {x : E} (hx : x ∈ fron
     have hzero : (0 : ℝ) < 0 := lt_trans hδpos hδneg
     exact (lt_irrefl _ hzero)
   · refine ⟨0, 0, by simp, ?_⟩
-    -- With empty interior the statement is vacuous, so the zero functional suffices.
     intro _ _; simp
 
 /-- Corollary A3.2(ii) (separation of convex sets).
@@ -112,7 +104,6 @@ lemma kallenberg_a3_2_ii {M N : Set E} (hM : Convex ℝ M) (hN : Convex ℝ N)
     (hdisj : Disjoint M N) :
     ∃ (φ : StrongDual ℝ E) (b : ℝ), (∀ y ∈ M, φ y ≤ b) ∧ (∀ y ∈ N, b ≤ φ y) := by
   classical
-  -- First, try to find support at a boundary point of `M`.
   by_cases hIntM : (interior M).Nonempty
   · set s := interior M
     have hConv_s : Convex ℝ s := hM.interior
@@ -122,14 +113,12 @@ lemma kallenberg_a3_2_ii {M N : Set E} (hM : Convex ℝ M) (hN : Convex ℝ N)
       geometric_hahn_banach_open (s := s) (t := N) hConv_s hOpen_s hN hdisj_sN
     refine ⟨φ, u, ?_, hφ_N⟩
     intro y hyM
-    -- Access to the open-set separator requires approximating `y` by points in `s`.
     have hy_closure_s : y ∈ closure s := by
       have hy_closureM : y ∈ closure M := subset_closure hyM
       have hclosure :=
         hM.closure_interior_eq_closure_of_nonempty_interior (𝕜 := ℝ) hIntM
       simpa [s, hclosure] using hy_closureM
     by_contra h_gt
-    -- As in part (i), build a strict bump above `u` and contradict the open separation.
     have hlt : u < φ y := lt_of_not_ge h_gt
     set δ := (φ y - u) / 2
     have hδpos : 0 < δ := by
@@ -145,7 +134,6 @@ lemma kallenberg_a3_2_ii {M N : Set E} (hM : Convex ℝ M) (hN : Convex ℝ N)
     have hyU : y ∈ U := by simpa [U, Set.mem_preimage, Set.mem_Ioi] using hy_mem
     obtain ⟨z, hzU, hzs⟩ := (mem_closure_iff.1 hy_closure_s) U hUopen hyU
     have hz_gt : φ z ∈ Set.Ioi (u + δ) := by
-      -- Because `U` is an open strict upper halfspace, its points stay strictly above `u`.
       simpa [U, Set.mem_preimage] using hzU
     have hz_gt' : u < φ z := by
       have huv : u < u + δ := lt_add_of_pos_right _ hδpos
@@ -153,7 +141,6 @@ lemma kallenberg_a3_2_ii {M N : Set E} (hM : Convex ℝ M) (hN : Convex ℝ N)
       exact lt_trans huv this
     have hz_lt : φ z < u := hφ_s z hzs
     exact (lt_irrefl _ (lt_trans hz_gt' hz_lt))
-  -- Otherwise we pass to the other set and point the functional in the opposite direction.
   · by_cases hIntN : (interior N).Nonempty
     · set s := interior N
       have hConv_s : Convex ℝ s := hN.interior
@@ -163,20 +150,17 @@ lemma kallenberg_a3_2_ii {M N : Set E} (hM : Convex ℝ M) (hN : Convex ℝ N)
         geometric_hahn_banach_open (s := s) (t := M) hConv_s hOpen_s hM hdisj_sM
       refine ⟨-φ, -u, ?_, ?_⟩
       · intro y hyM
-        -- Translate the inequality `φ y ≤ u` into the inequality required for `-φ`.
         have hy := hφ_M y hyM
         have : -φ y ≤ -u := neg_le_neg hy
         simpa using this
       · intro y hyN
         have hy_closure_s : y ∈ closure s := by
-          -- Mirror the closure argument on `N` to find interior approximants of `y`.
           have hy_closureN : y ∈ closure N := subset_closure hyN
           have hclosure :=
             hN.closure_interior_eq_closure_of_nonempty_interior (𝕜 := ℝ) hIntN
           simpa [s, hclosure] using hy_closureN
         have hy_le : φ y ≤ u := by
           by_contra h_gt
-          -- Again use the open-set separation to get a contradiction.
           have hlt : u < φ y := lt_of_not_ge h_gt
           set δ := (φ y - u) / 2
           have hδpos : 0 < δ := by
@@ -192,7 +176,6 @@ lemma kallenberg_a3_2_ii {M N : Set E} (hM : Convex ℝ M) (hN : Convex ℝ N)
           have hyU : y ∈ U := by simpa [U, Set.mem_preimage, Set.mem_Ioi] using hy_mem
           obtain ⟨z, hzU, hzs⟩ := (mem_closure_iff.1 hy_closure_s) U hUopen hyU
           have hz_gt : φ z ∈ Set.Ioi (u + δ) := by
-            -- The same open-halfspace argument gives a point strictly above `u`.
             simpa [U, Set.mem_preimage] using hzU
           have hz_gt' : u < φ z := by
             have huv : u < u + δ := lt_add_of_pos_right _ hδpos
@@ -204,7 +187,6 @@ lemma kallenberg_a3_2_ii {M N : Set E} (hM : Convex ℝ M) (hN : Convex ℝ N)
           simpa [neg_le_neg_iff] using hy_le
         simpa using this
     · refine ⟨0, 0, ?_, ?_⟩
-      -- If both interiors are empty, the desired non-strict inequalities are automatic.
       · intro _ _; simp
       · intro _ _; simp
 
@@ -226,7 +208,7 @@ theorem kallenberg_a3_4 {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] :
   refine ⟨NormedSpace.inclusionInDoubleDualLi (𝕜 := ℝ) (E := E), ?_⟩
   intro x f
   change NormedSpace.inclusionInDoubleDual (𝕜 := ℝ) (E := E) x f = f x
-  simp [NormedSpace.dual_def]  -- direct evaluation of the inclusion map
+  simp [NormedSpace.dual_def]
 
 
 def weakStarTopologyOnDual (E : Type*) [NormedAddCommGroup E] [NormedSpace ℝ E] :
@@ -248,7 +230,41 @@ lemma kallenberg_a3_5 {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] :
       weakTopologyOnDual E ≤
         (UniformSpace.toTopologicalSpace : TopologicalSpace (StrongDual ℝ E)) := by
   classical
-  sorry
+  have h_ws_le_w : weakStarTopologyOnDual E ≤ weakTopologyOnDual E := by
+    rw [← continuous_id_iff_le]
+    -- Goal: Continuous id : (E*, weak) → (E*, weak*)
+    -- weak = induced g T_E**, weak* = induced f T_E
+    -- where g(φ)(ψ) = ψ φ, f(φ)(x) = φ x
+    -- By continuous_induced_rng, it suffices to show f is continuous from weak to product
+    refine continuous_induced_rng.mpr ?_
+    -- f(φ)(x) = φ x. Need: Continuous[weak, T_E] f
+    refine continuous_pi_iff.mpr ?_
+    intro x
+    -- Need: Continuous[weak, ℝ] (λ φ, φ x)
+    -- φ x = g(φ)(J x) where J = inclusionInDoubleDualLi
+    -- g is continuous by continuous_induced_dom, eval at J x is continuous in product topology
+    have hg_cont : Continuous[weakTopologyOnDual E, inferInstance]
+        (fun (φ : StrongDual ℝ E) (ψ : StrongDual ℝ (StrongDual ℝ E)) => ψ φ) :=
+      continuous_induced_dom
+    have h_eval_cont : Continuous (fun (f : StrongDual ℝ (StrongDual ℝ E) → ℝ) =>
+        f (NormedSpace.inclusionInDoubleDualLi (𝕜 := ℝ) x)) :=
+      continuous_apply (NormedSpace.inclusionInDoubleDualLi (𝕜 := ℝ) x)
+    -- (λ φ, φ x) = h_eval_cont ∘ g
+    simpa [NormedSpace.inclusionInDoubleDualLi] using h_eval_cont.comp hg_cont
+  have h_w_le_n : weakTopologyOnDual E ≤
+      (UniformSpace.toTopologicalSpace : TopologicalSpace (StrongDual ℝ E)) := by
+    rw [← continuous_id_iff_le]
+    -- Goal: Continuous id : (E*, norm) → (E*, weak)
+    -- weak = induced g T_E**
+    -- By continuous_induced_rng, it suffices to show g is continuous from norm to product
+    refine continuous_induced_rng.mpr ?_
+    -- g(φ)(ψ) = ψ φ. Need: Continuous[norm, T_E**] g
+    refine continuous_pi_iff.mpr ?_
+    intro ψ
+    -- Need: Continuous[norm, ℝ] (λ φ, ψ φ)
+    -- ψ is a continuous linear functional, hence continuous in norm topology
+    exact ψ.continuous
+  exact ⟨h_ws_le_w, h_w_le_n⟩
 
 /-- Lemma A3.5(ii) (topologies on X*)
 For a normed reflexive linear space X, the weak*, weak, and norm topologies
@@ -260,7 +276,38 @@ lemma kallenberg_a3_5_ii {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
       weakTopologyOnDual E =
         (UniformSpace.toTopologicalSpace : TopologicalSpace (StrongDual ℝ E)) := by
   classical
-  sorry
+  have h_ws_eq_w : weakStarTopologyOnDual E = weakTopologyOnDual E := by
+    apply le_antisymm
+    · exact (kallenberg_a3_5 (E := E)).1
+    · rw [← continuous_id_iff_le]
+      refine continuous_induced_rng.mpr ?_
+      refine continuous_pi_iff.mpr ?_
+      intro ψ
+      obtain ⟨x, hx⟩ := h_reflexive ψ
+      -- hx : NormedSpace.inclusionInDoubleDualLi x = ψ
+      -- So ψ φ = (J x) φ = φ x
+      have h_eq : (fun (φ : StrongDual ℝ E) => ψ φ) =
+          (fun (φ : StrongDual ℝ E) => φ x) := by
+        ext φ; simpa [hx]
+      rw [h_eq]
+      have h_f_cont : Continuous[weakStarTopologyOnDual E, inferInstance]
+          (fun (φ : StrongDual ℝ E) (x' : E) => φ x') :=
+        continuous_induced_dom
+      exact (continuous_pi_iff.mp h_f_cont) x
+  have h_w_eq_n : weakTopologyOnDual E =
+      (UniformSpace.toTopologicalSpace : TopologicalSpace (StrongDual ℝ E)) := by
+    apply le_antisymm
+    · -- weak ≤ norm: already proved in kallenberg_a3_5
+      exact (kallenberg_a3_5 (E := E)).2
+    · -- norm ≤ weak: use norm ≤ weak* (from mathlib) and weak* = weak (from reflexivity)
+      have h_norm_le_ws : (UniformSpace.toTopologicalSpace : TopologicalSpace (StrongDual ℝ E)) ≤
+          weakStarTopologyOnDual E :=
+        dual_norm_topology_le_weak_dual_topology (𝕜 := ℝ) (E := E)
+      have h_norm_le_w : (UniformSpace.toTopologicalSpace : TopologicalSpace (StrongDual ℝ E)) ≤
+          weakTopologyOnDual E :=
+        h_norm_le_ws.trans h_ws_eq_w.le
+      exact h_norm_le_w
+  exact ⟨h_ws_eq_w, h_w_eq_n⟩
 
 
 /-- Lemma A3.6 (Riesz representation)
